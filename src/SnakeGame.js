@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 const SnakeGame = () => {
-  const gridSize = 20; // Change grid size
+  const gridSize = 20;
+  const cellSize = 20;
   const [snake, setSnake] = useState([{ x: 0, y: 0 }]);
   const [food, setFood] = useState(generateFoodPosition());
   const [direction, setDirection] = useState('RIGHT');
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [resetGame, setResetGame] = useState(false);
-  const [speed, setSpeed] = useState(1000 / 10); // Adjusted for slower snake movement
+  const [speed, setSpeed] = useState(1000 / 10);
 
   function generateFoodPosition() {
     const x = Math.floor(Math.random() * gridSize);
@@ -23,7 +24,7 @@ const SnakeGame = () => {
     setGameOver(false);
     setScore(0);
     setResetGame(false);
-    setSpeed(1000 / 10); // Reset speed to a slower value
+    setSpeed(1000 / 10);
   };
 
   function moveSnake() {
@@ -102,10 +103,28 @@ const SnakeGame = () => {
     }
   };
 
+  const handleTouchMove = (e) => {
+    if (gameOver) return;
+
+    const { clientX, clientY } = e.touches[0];
+    const deltaX = clientX - snake[0].x * cellSize;
+    const deltaY = clientY - snake[0].y * cellSize;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      setDirection(deltaX > 0 ? 'RIGHT' : 'LEFT');
+    } else {
+      setDirection(deltaY > 0 ? 'DOWN' : 'UP');
+    }
+  };
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('touchmove', handleTouchMove);
 
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
   }, []);
 
   return (
@@ -117,7 +136,7 @@ const SnakeGame = () => {
           <button onClick={handleResetGame}>Reset Game</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gridSize}, 20px)`, margin: '20px auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gridSize}, ${cellSize}px)`, margin: '20px auto' }}>
           {Array.from({ length: gridSize * gridSize }).map((_, index) => {
             const position = { x: index % gridSize, y: Math.floor(index / gridSize) };
             const isSnake = snake.some((segment) => segment.x === position.x && segment.y === position.y);
@@ -127,8 +146,8 @@ const SnakeGame = () => {
               <div
                 key={index}
                 style={{
-                  width: '20px',
-                  height: '20px',
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
                   backgroundColor: isSnake ? 'green' : isFood ? 'red' : 'lightgray',
                   border: '1px solid white',
                   cursor: 'pointer',
